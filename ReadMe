@@ -1,0 +1,46 @@
+The following step will create Azure Point to Site VPN to On-premise computer
+
+1. Execute the following script in PowerShell
+#Set-ExecutionPolicy Unrestricted
+
+$cert = New-SelfSignedCertificate -Type Custom -KeySpec Signature `
+-Subject "CN=VPNRootCert" -KeyExportPolicy Exportable `
+-HashAlgorithm sha256 -KeyLength 2048 `
+-CertStoreLocation "Cert:\CurrentUser\My" -KeyUsageProperty Sign -KeyUsage CertSign
+
+New-SelfSignedCertificate -Type Custom -DnsName VPNRootCert -KeySpec Signature `
+-Subject "CN=VPNChildCert" -KeyExportPolicy Exportable `
+-HashAlgorithm sha256 -KeyLength 2048 `
+-CertStoreLocation "Cert:\CurrentUser\My" `
+-Signer $cert -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.2")
+
+2. Open mmc in Windows 10
+File --> Add/Remove Snap-in --> Certificates --> Add --> My user account
+Click Finish. And then click OK
+Click Certificates - Current User --> Personal --> Certificates 
+Export VPNRootCert:
+Right VPNRootCert --> All Tasks --> Export
+Select 'No, do not export the private key' --> Next
+Select 'Base-64 encoded X.509 (.CER) -- Next
+Select the File name and path --> Save, Next, Finish
+
+3. Execute StepToCreateAzureToOnPremiseConnection.json in Azure Template deployment. Which will create the following objects in Azure
+. Create Virtual Network and resource group
+. Create Local Network Gateway
+. Create Public IP Address
+. Create Virtual Network Gateway
+. Create Connection
+. Create a Virtual Machine for testing
+
+4. In Azure: 
+. Go to Virtual network gateway
+. Select Point-to-site configuration
+. Download VPN Client
+. Unzip the file
+. Execute VpnClientSetupAmd64.exe in WindowsAmd64 folder
+
+5. Open VPN connection in locating computer. 
+. The Point-to-site VPN connection will be created
+. Use the remote desktop connection to connect the VM created in step 3
+
+Note: If there have an issue to create VM in Azure. Manually create it.
